@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SQLite;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
@@ -50,6 +51,7 @@ namespace AllInOneCase
             richTextBoxBemerkung.Text = "";
         }
 
+        SQLiteWrapper mysqlligt = new SQLiteWrapper();
         private void hole_Kategorien()
         {
             String Kategorie = "";
@@ -57,8 +59,8 @@ namespace AllInOneCase
             comboBoxKategorie.Items.Clear();
 
             String tmpSQL = "Select * from Kategorien order by Kategorie";
-            System.Data.Odbc.OdbcDataReader ODBCDataReader1;
-            ODBCDataReader1 = SQLiteWrapper.doSQL(tmpSQL);
+            System.Data.SQLite.SQLiteDataReader ODBCDataReader1;
+            ODBCDataReader1 = mysqlligt.doSQL(tmpSQL);
             if (ODBCDataReader1 != null)
             {
                 while (ODBCDataReader1.Read())
@@ -75,8 +77,8 @@ namespace AllInOneCase
         private bool istFileVorhanden(String Link, String CaseID)
         {
             String tmpSQL = "Select * from Files where Link = '" + Link + "' and CaseID = " + CaseID;
-            System.Data.Odbc.OdbcDataReader ODBCDataReader1;
-            ODBCDataReader1 = SQLiteWrapper.doSQL(tmpSQL);
+            System.Data.SQLite.SQLiteDataReader ODBCDataReader1;
+            ODBCDataReader1 = mysqlligt.doSQL(tmpSQL);
             if (ODBCDataReader1 != null)
             {
                 if (ODBCDataReader1.HasRows)
@@ -108,8 +110,8 @@ namespace AllInOneCase
             if (SuchModus == "")
                 tmpSQL = "Select * from Cases order by Name";
 
-            System.Data.Odbc.OdbcDataReader ODBCDataReader1;
-            ODBCDataReader1 = SQLiteWrapper.doSQL(tmpSQL);
+            System.Data.SQLite.SQLiteDataReader ODBCDataReader1;
+            ODBCDataReader1 = mysqlligt.doSQL(tmpSQL);
             if (ODBCDataReader1 != null)
             {
                 while (ODBCDataReader1.Read())
@@ -189,7 +191,7 @@ namespace AllInOneCase
                     tmpSQL = "Update Cases Set Name = '" + CaseName + "', Kategorie = '" + Kategorie + "', Edit = Current_DateTime, Beschreibung = " + Bemerkung + ")";
                 }
 
-                SQLiteWrapper.doSQL(tmpSQL);
+                mysqlligt.doSQL(tmpSQL);
                 if (textBoxCaseSuchen.Text == "")
                     hole_AlleCases("", "");
                 else
@@ -227,7 +229,7 @@ namespace AllInOneCase
             if (istFileVorhanden(FileName, CaseID) == false)
             {
                 String tmpSQL = "Insert into Files (CaseID, Link, Typ) Values(" + CaseID + ", '" + FileName + "', '" + Typ + "')";
-                SQLiteWrapper.doSQL(tmpSQL);
+                mysqlligt.doSQL(tmpSQL);
             }
             else
             {
@@ -283,8 +285,8 @@ namespace AllInOneCase
             dataGridViewFiles.Rows.Clear();
 
             String tmpSQL = "Select * from Files where CaseID = " + CaseID + " order by Link";
-            System.Data.Odbc.OdbcDataReader ODBCDataReader1;
-            ODBCDataReader1 = SQLiteWrapper.doSQL(tmpSQL);
+            System.Data.SQLite.SQLiteDataReader ODBCDataReader1;
+            ODBCDataReader1 = mysqlligt.doSQL(tmpSQL);
             if (ODBCDataReader1 != null)
             {
                 while (ODBCDataReader1.Read())
@@ -363,8 +365,8 @@ namespace AllInOneCase
             DateTime? Edit = null;
 
             String tmpSQL = "Select * from Cases Where ID = " + sID;
-            System.Data.Odbc.OdbcDataReader ODBCDataReader1;
-            ODBCDataReader1 = SQLiteWrapper.doSQL(tmpSQL);
+            System.Data.SQLite.SQLiteDataReader ODBCDataReader1;
+            ODBCDataReader1 = mysqlligt.doSQL(tmpSQL);
             if (ODBCDataReader1 != null)
             {
                 while (ODBCDataReader1.Read())
@@ -402,8 +404,8 @@ namespace AllInOneCase
         private bool gibts_Kategorie_schon(String SuchKategorie)
         {
             String tmpSQL = "Select * from Kategorien Where Kategorie = '" + SuchKategorie + "'";
-            System.Data.Odbc.OdbcDataReader ODBCDataReader1;
-            ODBCDataReader1 = SQLiteWrapper.doSQL(tmpSQL);
+            System.Data.SQLite.SQLiteDataReader ODBCDataReader1;
+            ODBCDataReader1 = mysqlligt.doSQL(tmpSQL);
             if (ODBCDataReader1 != null)
             {
                 if (ODBCDataReader1.HasRows)
@@ -445,7 +447,7 @@ namespace AllInOneCase
                 if (gibts_Kategorie_schon(tfe.TextFeld) == false)
                 {
                     String tmpSQL = "Insert into Kategorien (Kategorie) Values ('" + tfe.TextFeld + "')";
-                    SQLiteWrapper.doSQL(tmpSQL);
+                    mysqlligt.doSQL(tmpSQL);
                     hole_Kategorien();
                 }
                 else
@@ -468,7 +470,7 @@ namespace AllInOneCase
                 if (gibts_Kategorie_schon(tfe.TextFeld) == false)
                 {
                     String tmpSQL = "Update Kategorien set Kategorie = '" + tfe.TextFeld + "' where Kategorie = '" + AlteKategorie + "'";
-                    SQLiteWrapper.doSQL(tmpSQL);
+                    mysqlligt.doSQL(tmpSQL);
                     hole_Kategorien();
                 }
                 else
@@ -484,7 +486,7 @@ namespace AllInOneCase
             if (zuLoeschendeKategorie != "")
             {
                 String tmpSQL = "Delete from Kategorien where Kategorie = '" + zuLoeschendeKategorie + "'";
-                SQLiteWrapper.doSQL(tmpSQL);
+                mysqlligt.doSQL(tmpSQL);
                 hole_Kategorien();
             }
         }
@@ -495,7 +497,7 @@ namespace AllInOneCase
             {
                 String ZuLoeschendeID = dataGridViewAlleCases.CurrentRow.Cells["ColumnID"].Value.ToString();
                 String tmpSQL = "Delete from Cases where ID = " + ZuLoeschendeID;
-                SQLiteWrapper.doSQL(tmpSQL);
+                mysqlligt.doSQL(tmpSQL);
                 if (textBoxCaseSuchen.Text == "")
                     hole_AlleCases("", "");
                 else
@@ -519,7 +521,7 @@ namespace AllInOneCase
         private void update_FileBeschreibung(String FileID, String Beschreibung)
         {
             String tmpSQL = "Update Files set Beschreibung = '" + SQLiteWrapper.checkStringforOdbc(Beschreibung) + "' where ID = " + FileID;
-            SQLiteWrapper.doSQL(tmpSQL);
+            mysqlligt.doSQL(tmpSQL);
         }
 
         private void beschreibungAendernToolStripMenuItem_Click(object sender, EventArgs e)
@@ -548,7 +550,7 @@ namespace AllInOneCase
                 {
                     String FileID = dgvr.Cells["dataGridViewTextBoxColumnFileID"].Value.ToString();
                     String tmpSQL = "Delete from Files where ID = " + FileID;
-                    SQLiteWrapper.doSQL(tmpSQL);
+                    mysqlligt.doSQL(tmpSQL);
                 }
                 hole_Files(dataGridViewAlleCases.CurrentRow.Cells["ColumnID"].Value.ToString());
             }

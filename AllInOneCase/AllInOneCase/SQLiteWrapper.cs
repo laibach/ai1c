@@ -2,96 +2,41 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Odbc;
+using System.Data.SQLite;
 using System.Text;
 
 namespace AllInOneCase
 {
     internal class SQLiteWrapper
     {
-        // Enlist=N
-
-        public static String SQLiteConnectionString = "Database=c:\\AI1C\\AIOC.db;Version=3;DRIVER=SQLite3 ODBC Driver;LongNames=0;Timeout=1000;NoTXN=0;SyncPragma=NORMAL;StepAPI=0;Pooling=True;Max Pool Size=100;Journal Mode=Off;";
-        public static OdbcConnection MyConnection;
-
-        // public SQLiteWrapper();
-
-        public static System.Data.Odbc.OdbcDataReader doSQL(String SQLString)
+        SQLiteConnection sconnection;
+        String SQLiteDB = "m4lw4r.db";
+        String sSQLiteConnectionString = "";
+        private void openConnection()
         {
-            MyConnection = SQLiteWrapper.openODBC(SQLiteConnectionString);
+            if (!System.IO.File.Exists(SQLiteDB))
+                SQLiteConnection.CreateFile(SQLiteDB);
 
-            return (SQLiteWrapper.GetData(MyConnection, SQLString));
+            sSQLiteConnectionString = "Data Source=" + SQLiteDB + ";Version=3;";
+            sconnection = new SQLiteConnection(sSQLiteConnectionString);
+            sconnection.Open();
         }
 
-        public static OdbcConnection openODBC(String ODBCConnectionString)
+        public SQLiteDataReader doSQL(String SQLStatement)
         {
-            if (MyConnection == null || MyConnection.State != ConnectionState.Open)
-            {
-                MyConnection = (new OdbcConnection());
-                MyConnection.ConnectionString = ODBCConnectionString;
-                MyConnection.Open();
-            }
-            else
-            {
-            }
-            return (MyConnection);
+            if (sconnection == null)
+                openConnection();
+
+            if (sconnection.State != System.Data.ConnectionState.Open)
+                openConnection();
+
+            SQLiteCommand command = new SQLiteCommand(SQLStatement, sconnection);
+            return command.ExecuteReader();
         }
 
-        public static void closeODBC()
+        public void closeConnection()
         {
-            MyConnection.Close();
-        }
-
-        public static OdbcDataReader GetData(OdbcConnection ODBCConnection, String SQLString)
-        {
-            OdbcCommand ODBCcmd;
-
-            ODBCcmd = new OdbcCommand();
-
-            ODBCcmd.Connection = ODBCConnection;
-
-            ODBCcmd.CommandText = SQLString;
-
-            ODBCcmd.CommandTimeout = 3000000;
-            ODBCcmd.CommandType = System.Data.CommandType.Text;
-            ODBCcmd.Transaction = null;
-            ODBCcmd.UpdatedRowSource = UpdateRowSource.None;
-
-            OdbcDataReader dr = null;
-            try
-            {
-                dr = ODBCcmd.ExecuteReader();
-            }
-            catch
-            {
-                // Fehlermeldung
-            }
-
-            // return (ODBCcmd.ExecuteReader());
-            return dr;
-        }
-
-        public static void SetData(OdbcConnection ODBCConnection, String SQLString)
-        {
-            OdbcCommand ODBCcmd;
-
-            ODBCcmd = new OdbcCommand();
-
-            ODBCcmd.Connection = ODBCConnection;
-
-            ODBCcmd.CommandText = SQLString;
-
-            ODBCcmd.CommandTimeout = 3000000;
-            ODBCcmd.CommandType = CommandType.Text;
-            ODBCcmd.Transaction = null;
-            ODBCcmd.UpdatedRowSource = UpdateRowSource.None;
-
-            ODBCcmd.ExecuteNonQuery();
-        }
-
-        public static void OdbcDataExecuter(String SQLString)
-        {
-            MyConnection = SQLiteWrapper.openODBC(SQLiteConnectionString);
-            SQLiteWrapper.SetData(MyConnection, SQLString);
+            sconnection.Close();
         }
 
         public static String checkStringforOdbc(String Text)
